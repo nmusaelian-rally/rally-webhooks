@@ -39,13 +39,13 @@ def test_deleteNonExistingWebhook():
     assert result['Errors'][0]['message'] == 'Webhook not found'
 
 def test_deleteWebhook():
-    webhook_uuid = '81322ea2-f195-46f5-a3e4-3a60dd1addb9'
+    webhook_uuid = 'c898d5e1-04e7-4f8c-95c7-28ac04f1f285'
     response = wr.get(webhook_uuid)
     if isinstance(response, dict):
         result = wr.delete(webhook_uuid)
         assert result == {}
 
-def test_postWithSecurityAndObjectTypes():
+def test_postAndPatch():
     payload = {
         "AppName"    : "jakaloof-foo",
         "AppUrl"     : "foobar.com",
@@ -61,16 +61,31 @@ def test_postWithSecurityAndObjectTypes():
     assert new_wh['SubscriptionID'] == 209
     assert new_wh['OwnerID']        == yeti_id
 
-def test_patchExpression():
-    webhook_uuid = 'c898d5e1-04e7-4f8c-95c7-28ac04f1f285'
-    project_uuid = '2a53df84-27f4-433e-9df3-cfe1880e80ea' #Dunder Donut
+    webhook_uuid = new_wh['ObjectUUID']
+    workspace_uuid = '7d1bc994-cb0a-4d2d-b172-62f81912ad34'
     payload = {
-        "Expressions": [{"Operator" : "=", "AttributeName" : "ScheduleState", "Value" : "Completed"},
-                        {"Operator" : "=", "AttributeName" : "Project", "Value": project_uuid}]
+        "Expressions": [{"AttributeName": "ScheduleState", "Operator": "=", "Value": "Completed"},
+                        {"AttributeName": "Workspace", "Operator": "=", "Value": workspace_uuid}]
     }
     updated_wh = wr.patch(webhook_uuid, payload)
     print(updated_wh)
-    expressions  = updated_wh['Expressions']
-    expression = [exp for exp in expressions if exp['AttributeName'] == 'Project'][0]
-    assert expression['Value'] == project_uuid
+    expressions = updated_wh['Expressions']
+    expression = [exp for exp in expressions if exp['AttributeName'] == 'Workspace'][0]
+    assert expression['Value'] == workspace_uuid
 
+
+def test_postWebhook4Feature():
+    payload = {
+        "AppName"    : "jakaloof-foo",
+        "AppUrl"     : "foobar.com",
+        "Name"       : "completed stories and defects",
+        "TargetUrl"  : "http://alligator.proxy.beeceptor.com",
+        "Security"   : "#1234!$#^&",
+        "ObjectTypes": ["Feature"],  #use Feature instead of PortfolioItem/Feature
+        "Expressions": [{"Operator" : "=", "AttributeName" : "FormattedID", "Value" : "F2"},
+                        {"Operator" : "=", "AttributeName" : "Workspace", "Value" : "7d1bc994-cb0a-4d2d-b172-62f81912ad34"}],
+    }
+    new_wh = wr.post(payload)
+    print(new_wh)
+    assert new_wh['SubscriptionID'] == 209
+    assert new_wh['ObjectTypes']    == ['Feature']
