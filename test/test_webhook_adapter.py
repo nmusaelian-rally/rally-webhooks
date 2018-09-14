@@ -1,7 +1,7 @@
 from webhook_adapter import WebhookRequest
 
 yeti_id = '4c3f7050-3d68-4f5d-8b6b-e9ef0b21d69a'
-wr  = WebhookRequest('../configs/config.yml')
+wr    = WebhookRequest('../configs/config.yml')
 
 def test_getAll():
     result_count, results = wr.getPage()
@@ -39,7 +39,7 @@ def test_deleteNonExistingWebhook():
     assert result['Errors'][0]['message'] == 'Webhook not found'
 
 def test_deleteWebhook():
-    webhook_uuid = 'c898d5e1-04e7-4f8c-95c7-28ac04f1f285'
+    webhook_uuid = 'd8dedd59-c6a8-4225-826a-67316732088b'
     response = wr.get(webhook_uuid)
     if isinstance(response, dict):
         result = wr.delete(webhook_uuid)
@@ -89,3 +89,34 @@ def test_postWebhook4Feature():
     print(new_wh)
     assert new_wh['SubscriptionID'] == 209
     assert new_wh['ObjectTypes']    == ['Feature']
+
+def test_sub100():
+    wr100 = WebhookRequest('../configs/config100.yml')
+    workspace_uuid = '3497d043-3ea7-4c8a-bf78-069847936c13' #Rally
+    project_uuid   = '87b9a219-7bb9-40e9-8afe-96430e11d6f1' #AT
+    payload = {
+        "AppName"    : "alligator-tiers",
+        "AppUrl"     : "foobar.com",
+        "Name"       : "defects in AT",
+        "TargetUrl"  : "http://alligator.proxy.beeceptor.com",
+        "Security"   : "#1234!$#^&",
+        "ObjectTypes": ["Defect"],
+        "Expressions": [{"AttributeName" : "State",     "Operator" : "!=", "Value" : "Fixed"},
+                        {"AttributeName" : "Workspace", "Operator" : "=",  "Value" : workspace_uuid},
+                        {"AttributeName" : "Project",   "Operator" : "=",  "Value" : project_uuid}]
+    }
+    new_wh = wr100.post(payload)
+    print(new_wh)
+    assert new_wh['SubscriptionID'] == 100
+    expressions = new_wh['Expressions']
+    expression = [exp for exp in expressions if exp['AttributeName'] == 'Project'][0]
+    assert expression['Value'] == project_uuid
+
+def test_getNMWebhooks():
+    nm_id = 'dd160a48-4dab-4c3f-a0ea-c94d77ac5735'
+    wr100 = WebhookRequest('../configs/config100.yml')
+    result_count, results = wr100.getPage()
+    my_webhooks = [{item['ObjectUUID'] : item} for item in results if item['OwnerID'] == nm_id]
+    print(len(my_webhooks))
+    for wh in my_webhooks:
+        print (wh)

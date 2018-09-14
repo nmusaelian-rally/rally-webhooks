@@ -72,13 +72,13 @@ class WebhookRequest:
             sys.exit(1)
         return result
 
-def main():
-    wr  = WebhookRequest('configs/config.yml')
-    result_count, results = wr.getPage()
-    print(result_count)
-    for item in results:
-        print(item)
-
-
-if __name__ == '__main__':
-    main()
+# def main():
+#     wr  = WebhookRequest('configs/config.yml')
+#     result_count, results = wr.getPage()
+#     print(result_count)
+#     for item in results:
+#         print(item)
+#
+#
+# if __name__ == '__main__':
+#     main()
