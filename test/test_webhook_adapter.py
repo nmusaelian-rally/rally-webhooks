@@ -1,7 +1,9 @@
+import sys, os
+sys.path.insert(0, '/Users/pairing/nick/rally-webhooks')
 from webhook_adapter import WebhookRequest
 
 yeti_id = '4c3f7050-3d68-4f5d-8b6b-e9ef0b21d69a'
-wr    = WebhookRequest('../configs/config.yml')
+wr    = WebhookRequest('configs/config.yml')
 
 def test_getAll():
     result_count, results = wr.getPage()
@@ -39,7 +41,7 @@ def test_deleteNonExistingWebhook():
     assert result['Errors'][0]['message'] == 'Webhook not found'
 
 def test_deleteWebhook():
-    webhook_uuid = 'd8dedd59-c6a8-4225-826a-67316732088b'
+    webhook_uuid = '9023eaf8-4e53-46c7-adf1-f393a8956401'
     response = wr.get(webhook_uuid)
     if isinstance(response, dict):
         result = wr.delete(webhook_uuid)
@@ -91,7 +93,7 @@ def test_postWebhook4Feature():
     assert new_wh['ObjectTypes']    == ['Feature']
 
 def test_sub100():
-    wr100 = WebhookRequest('../configs/config100.yml')
+    wr100 = WebhookRequest('configs/configkip100.yml')
     workspace_uuid = '3497d043-3ea7-4c8a-bf78-069847936c13' #Rally
     project_uuid   = '87b9a219-7bb9-40e9-8afe-96430e11d6f1' #AT
     payload = {
@@ -114,9 +116,29 @@ def test_sub100():
 
 def test_getNMWebhooks():
     nm_id = 'dd160a48-4dab-4c3f-a0ea-c94d77ac5735'
-    wr100 = WebhookRequest('../configs/config100.yml')
+    kip_id = '8cbe0a5a-8f10-4aa3-8be3-6366096676ef'
+    wr100 = WebhookRequest('configs/configkip100.yml')
     result_count, results = wr100.getPage()
-    my_webhooks = [{item['ObjectUUID'] : item} for item in results if item['OwnerID'] == nm_id]
+    #my_webhooks = [{item['ObjectUUID'] : item} for item in results if item['OwnerID'] == nm_id]
+    my_webhooks = [{item['ObjectUUID'] : item} for item in results if item['OwnerID'] == kip_id]
     print(len(my_webhooks))
     for wh in my_webhooks:
         print (wh)
+
+def test_fawltyServer():
+    payload = {
+        "AppName": "jakaloof-foo",
+        "AppUrl": "foobar.com",
+        "Name": "completed stories and defects",
+        #"TargetUrl": "http://wombat.f4tech.com:8885",
+        "TargetUrl": "http://dae835ff.ngrok.io",
+        "Security": "#1234!$#^&",
+        "ObjectTypes": ["Feature"],  # use Feature instead of PortfolioItem/Feature
+        "Expressions": [{"Operator": "=", "AttributeName": "FormattedID", "Value": "F2"},
+                        {"Operator": "=", "AttributeName": "Workspace",
+                         "Value": "7d1bc994-cb0a-4d2d-b172-62f81912ad34"}],
+    }
+    new_wh = wr.post(payload)
+    print(new_wh)
+    assert new_wh['SubscriptionID'] == 209
+    assert new_wh['ObjectTypes'] == ['Feature']
